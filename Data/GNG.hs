@@ -65,9 +65,10 @@ update gng input = State.execState (update' input) gng
 update' :: Input a => a -> StGNG a ()
 update' input = do
     (n1, n2) <- neighborNodes input
-    case headMay (intersect (n1^.edgeIds) (n2^.edgeIds)) of
-        Nothing  -> (^.edgeId) <$> newEdge n1 n2 >> return ()
-        Just eid -> modifyEdge (&age .~ 0) eid
+    maybe
+        ((^.edgeId) <$> newEdge n1 n2 >> return ())
+        (modifyEdge (&age .~ 0))
+        $ headMay (intersect (n1^.edgeIds) (n2^.edgeIds))
     moveNodes input n1
     splitNodes
     aging n1
